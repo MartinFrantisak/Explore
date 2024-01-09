@@ -5,4 +5,10 @@
     <string name="home">Home</string>
     <string name="favourite">Favourite</string>
     <string name="about">About</string>
+    <string name="enter">Enter...</string>
+    <string name="city_to_explore">City to explore</string>
+    <string name="let_s_explore">Let\'s EXPLORE</string>
+    <string name="explore">Explore</string>
+    <string name="save_tip">Save tip</string>
+    <string name="loading">Loading...</string>
 </resources>
