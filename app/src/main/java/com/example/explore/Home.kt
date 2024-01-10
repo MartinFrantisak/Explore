@@ -69,7 +69,7 @@ class Home : Fragment() {
 
         val saveTipButton = view.findViewById<Button>(R.id.save_tip)
         saveTipButton.setOnClickListener {
-            val data = StorageData(tipName.text.toString(), description.text.toString())
+            val data = StorageData(cityInput.text.toString(), tipName.text.toString(), description.text.toString())
             val jsonData = Gson().toJson(data)
             appendNewData(jsonData)
         }
@@ -113,6 +113,7 @@ class Home : Fragment() {
                 }
             }
             override fun onFailure(call: Call<ResponseData>, t: Throwable) {
+                Log.e("APIError", "Call failed with error: ${t.message}")
             }
         })
     }

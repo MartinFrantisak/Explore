@@ -9,7 +9,7 @@ import retrofit2.http.POST
 
 interface ApiService {
     @POST("v1/chat/completions")
-    @Headers("Authorization: Bearer KEY")
+    @Headers("Authorization: Bearer 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")
     fun generateText(@Body requestData: RequestData): Call<ResponseData>
 }
 
@@ -30,6 +30,7 @@ data class RequestData(
 )
 
 data class StorageData(
+    val city: String,
     val tipName: String,
     val description: String
 )

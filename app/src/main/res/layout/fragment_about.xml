@@ -1,14 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".About">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <LinearLayout
+        android:id="@+id/linear_top"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="80dp"
+        android:background="@drawable/rounded_corners"
+        android:orientation="horizontal">
 
-</FrameLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/about_about"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:letterSpacing="0.1"
+            android:textSize="32sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:text="@string/welcome_to_my_app"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textSize="18sp"
+        android:text="@string/this_application_was_created_on_android_version_9_api_28_the_main_goal_of_this_application_is_to_search_for_travel_tips_according_to_the_selected_city_chatgpt_api_with_version_3_5_turbo_helps_to_find_travel_tips"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textSize="18sp"
+        android:text="@string/you_can_save_tips_to_your_favorites_list_and_the_application_also_allows_you_to_quickly_delete_all_saved_tips_with_one_click"
+        />
+</LinearLayout>
