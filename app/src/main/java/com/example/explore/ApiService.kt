@@ -15,6 +15,8 @@ interface ApiService {
 
 data class ResponseData(val choices: List<Choice>)
 
+data class City(val city: String, val tipName: String, val description: String)
+
 data class Choice(val message: Message)
 
 data class RequestData(
@@ -25,6 +27,11 @@ data class RequestData(
     val top_p: Double,
     val frequency_penalty: Double,
     val presence_penalty: Double
+)
+
+data class StorageData(
+    val tipName: String,
+    val description: String
 )
 
 data class Message(

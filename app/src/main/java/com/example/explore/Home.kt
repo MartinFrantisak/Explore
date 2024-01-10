@@ -2,6 +2,7 @@ package com.example.explore
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -15,11 +16,17 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
+import com.google.gson.reflect.TypeToken
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class Home : Fragment() {
+
+    private lateinit var sharedPreferencesStorage: SharedPreferences
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -31,15 +38,16 @@ class Home : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        sharedPreferencesStorage = requireActivity().getSharedPreferences("Storage", Context.MODE_PRIVATE)
+
         val cityInput = view.findViewById<EditText>(R.id.city_input)
-        val providedTip = view.findViewById<TextView>(R.id.provided_tip)
+        val description = view.findViewById<TextView>(R.id.description)
+        val tipName = view.findViewById<TextView>(R.id.tipName)
         val loadingText = view.findViewById<TextView>(R.id.loading_placeholder)
 
         cityInput?.setOnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
-                // Handle the 'Done' action here
-                hideKeyboard(v)
-                Log.i("CITY_INPUT", cityInput.text.toString())
+                confirmCity(loadingText, cityInput, v)
                 true
             } else {
                 false
@@ -48,18 +56,22 @@ class Home : Fragment() {
 
         val confirmCityButton = view.findViewById<Button>(R.id.confirm_city)
         confirmCityButton.setOnClickListener {
-            loadingText.visibility = View.VISIBLE
-            val userText = "Hi, I want to visit ${cityInput.text}. Write one interesting travel tip in this city with short description (max 2 sentences)."
-            providedTip.text = "Loading"
-            getResponseFromAPI(userText)
-            hideKeyboard(it)
+            confirmCity(loadingText, cityInput, it)
         }
 
         val nextTipButton = view.findViewById<Button>(R.id.next_tip)
         nextTipButton.setOnClickListener {
             loadingText.visibility = View.VISIBLE
-            providedTip.visibility = View.GONE
-            getResponseFromAPI("Last time you gave me this travel tip: ${providedTip.text} in ${cityInput.text}. What else should I see in ${cityInput.text}? Follow up with another short travel trip in ${cityInput.text} (max 2 sentences).")
+            description.visibility = View.GONE
+            tipName.visibility = View.GONE
+            getResponseFromAPI("Last time you gave me this travel tip: ${description.text} in ${cityInput.text}. What else should I see in ${cityInput.text}? Follow up with another short travel trip (max 2 sentences) in ${cityInput.text}. Return in this form: '{\"city\":\"cityName\",\"tipName\":\"tipName\",\"description\":\"description\"}'")
+        }
+
+        val saveTipButton = view.findViewById<Button>(R.id.save_tip)
+        saveTipButton.setOnClickListener {
+            val data = StorageData(tipName.text.toString(), description.text.toString())
+            val jsonData = Gson().toJson(data)
+            appendNewData(jsonData)
         }
     }
 
@@ -81,12 +93,17 @@ class Home : Fragment() {
         )
 
         RetrofitClient.instance.generateText(requestData).enqueue(object : Callback<ResponseData> {
+            @SuppressLint("CutPasteId")
             override fun onResponse(call: Call<ResponseData>, response: Response<ResponseData>) {
                 if (response.isSuccessful) {
-                    val generatedText = response.body()?.choices?.firstOrNull()?.message?.content
-                    view?.findViewById<TextView>(R.id.provided_tip)?.text = generatedText
+                    val gson = Gson()
+                    val json = response.body()?.choices?.firstOrNull()?.message?.content
+                    val out = gson.fromJson(json, City::class.java )
+                    view?.findViewById<TextView>(R.id.description)?.text = out.description
+                    view?.findViewById<TextView>(R.id.tipName)?.text = out.tipName
                     view?.findViewById<TextView>(R.id.loading_placeholder)?.visibility = View.GONE
-                    view?.findViewById<TextView>(R.id.provided_tip)?.visibility = View.VISIBLE
+                    view?.findViewById<TextView>(R.id.description)?.visibility = View.VISIBLE
+                    view?.findViewById<TextView>(R.id.tipName)?.visibility = View.VISIBLE
                     view?.findViewById<ScrollView>(R.id.scroll_view_response)?.visibility = View.VISIBLE
                     view?.findViewById<LinearLayout>(R.id.linear_layout_buttons)?.visibility = View.VISIBLE
 
@@ -96,8 +113,45 @@ class Home : Fragment() {
                 }
             }
             override fun onFailure(call: Call<ResponseData>, t: Throwable) {
-                // TODO: Handle network error
             }
         })
+    }
+
+    private fun saveData(data: String) {
+        val editor = sharedPreferencesStorage.edit()
+        editor?.putString("data", data)
+        editor?.apply()
+    }
+
+    private fun appendNewData(newData: String) {
+        val gson = Gson()
+        val existingDataJson = getData()
+        val type = object : TypeToken<ArrayList<StorageData>>() {}.type
+        val dataList: ArrayList<StorageData> = if (existingDataJson.isNotEmpty()) {
+            try {
+                gson.fromJson(existingDataJson, type)
+            } catch (e: JsonSyntaxException) {
+                ArrayList()
+            }
+        } else {
+            ArrayList()
+        }
+
+        val newDataObject = gson.fromJson(newData, StorageData::class.java)
+        dataList.add(newDataObject)
+
+        val combinedDataJson = gson.toJson(dataList)
+        saveData(combinedDataJson)
+    }
+
+    private fun getData(): String {
+        return sharedPreferencesStorage.getString("data", "") ?: ""
+    }
+
+    private fun confirmCity(loadingText: TextView, cityInput: TextView, it: View) {
+        loadingText.visibility = View.VISIBLE
+        val userText = "Hi, I want to visit ${cityInput.text}. Write one interesting travel tip in this city with short description (max 2 sentences). Return in this form: '{\"city\":\"cityName\",\"tipName\":\"tipName\",\"description\":\"description\"}'"
+        getResponseFromAPI(userText)
+        hideKeyboard(it)
     }
 }
